@@ -36,6 +36,7 @@ download_img() {
 extract_img() {
 	dd if="$SOURCE_IMG_BASENAME" bs=1 count=432 of="isohdpfx.bin"
 	xorriso -osirrox on -indev "$SOURCE_IMG_BASENAME" -extract / "$BUILD_DIR/isoroot"
+	VOLUME_NAME=$(xorriso -indev "$SOURCE_IMG_BASENAME" 2>&1 | grep '^Volume id' | grep -o "'.*'" | sed "s/'//g")
 }
 
 inject_files() {
@@ -58,7 +59,7 @@ pack_img() {
 	pushd "$BUILD_DIR/isoroot"
 	md5sum `find -follow -type f` > md5sum.txt
 	popd
-	xorriso -as mkisofs -r -checksum_algorithm_iso md5,sha1,sha256,sha512 -V "Debian preseeded"  -o "$BUILD_DIR/${DEST_IMG_BASENAME}" -J -joliet-long -cache-inodes -isohybrid-mbr isohdpfx.bin -b isolinux/isolinux.bin -c isolinux/boot.cat -boot-load-size 4 -boot-info-table -no-emul-boot -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat -isohybrid-apm-hfsplus isoroot
+	xorriso -as mkisofs -r -checksum_algorithm_iso md5,sha1,sha256,sha512 -V "${VOLUME_NAME}" -o "$BUILD_DIR/${DEST_IMG_BASENAME}" -J -joliet-long -cache-inodes -isohybrid-mbr isohdpfx.bin -b isolinux/isolinux.bin -c isolinux/boot.cat -boot-load-size 4 -boot-info-table -no-emul-boot -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat -isohybrid-apm-hfsplus isoroot
 }
 
 load_config
