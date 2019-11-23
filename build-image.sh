@@ -41,11 +41,15 @@ extract_img() {
 inject_files() {
 	pushd "$BUILD_DIR/isoroot"
 	chmod +w -R install.*/
-	gunzip install.*/initrd.gz
 	cp "$PRESET_DIR/preseed.cfg" .
-	echo preseed.cfg | cpio -H newc -o -A -F install.*/initrd
+	for f in install.*/initrd.gz install.*/*/initrd.gz; do
+		echo "Processing ${f}..."
+		ORIG_NAME="${f%.*}"
+		gunzip "$f"
+		echo preseed.cfg | cpio -H newc -o -A -F "${ORIG_NAME}"
+		gzip "${ORIG_NAME}"
+	done
 	rm preseed.cfg
-	gzip install.*/initrd
 	chmod -w -R install.*/
 	popd
 }
